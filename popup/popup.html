@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Octane Form Filler</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header>
+    <div class="logo">⚡</div>
+    <div class="title">
+      <span class="brand">Octane</span>
+      <span class="sub">Form Filler</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="field-group">
+      <label for="email-override">Your email (overrides profile email)</label>
+      <input type="email" id="email-override" placeholder="you@octane.co" />
+    </div>
+
+    <div class="field-group">
+      <label for="profile-select">Test profile</label>
+      <select id="profile-select">
+        <option value="">— select a profile —</option>
+      </select>
+    </div>
+
+    <div id="coapplicant-row" class="field-group hidden">
+      <label>Section</label>
+      <div class="radio-group">
+        <label class="radio-label">
+          <input type="radio" name="section" value="primary" checked /> Primary
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="section" value="coApplicant" /> Co-applicant
+        </label>
+      </div>
+    </div>
+
+    <button id="fill-btn" disabled>Fill visible fields</button>
+
+    <div id="status" class="status hidden"></div>
+  </main>
+
+  <script src="popup.js"></script>
+</body>
+</html>
