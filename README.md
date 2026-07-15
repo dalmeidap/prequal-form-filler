@@ -1,4 +1,4 @@
-# Octane Form Filler — Chrome Extension (Spike)
+# Prequal Form Filler — Chrome Extension
 
 Dev tool for filling Octane apply forms with test profiles. No app changes required.
 
@@ -7,7 +7,7 @@ Dev tool for filling Octane apply forms with test profiles. No app changes requi
 1. Open Chrome → `chrome://extensions`
 2. Enable **Developer mode** (top right toggle)
 3. Click **Load unpacked**
-4. Select this folder (`octane-filler/`)
+4. Select this folder (`prequal-form-filler/`)
 
 ## Use
 
@@ -31,17 +31,20 @@ Before treating this as done, verify these four field types work correctly
 in the running app. Open the browser console to see `[OctaneFiller]` logs.
 
 ### 1. Text field — `FirstName`
+
 - Fill George Beer on `/` (LeadForm or LongForm)
 - Expected: `firstName` input shows "GEORGE", RHF marks it valid
 - Check: console shows `filled: ['firstName', ...]`
 
 ### 2. Masked input — `BirthDate`
+
 - Fill any profile on LongForm
 - Expected: `birthDate` shows "09/15/1941" formatted as MM/DD/YYYY
 - If blank or malformed: the `nativeInputValueSetter` approach isn't reaching imask's internal state
 - Fix path: dispatch character-by-character keydown events instead
 
 ### 3. Tab/button group — `ResidentialStatus`
+
 - Fill any profile, check the "I own / I rent / Rent-free" buttons
 - Expected: correct option appears selected (highlighted)
 - If not: Spark Tab.Button may not use `value` attribute — inspect DOM and adjust
