@@ -12,7 +12,7 @@ const PROFILES = {
       state: "NV", zipCode: "54636", residentialStatus: "R",
       residentialDate: "01/2020", employmentStatus: "employed",
       yearlyIncome: 170000, incomeInterval: "yearly",
-      contactPreference: "call", phoneNumber: "6085261867", cellPhoneNumber: "6085261867",
+      contactPreference: "call", phoneNumber: "6085261867",
       purchaseIntent: "week", citizenshipStatus: "us_citizen",
       monthlyHousePayment: 1000, employerName: "Octane",
       employerPhone: "5165165165", jobTitle: "Bug Hunter",
@@ -120,10 +120,11 @@ const PROFILES = {
 
 // --- Select field label map ---
 // Spark Select has no name/id on the wrapper - the <label> text is the only stable identifier.
-// Maps field name -> label text rendered in the DOM.
+// Values can be a string or array of strings to handle the same field
+// appearing with different labels across different screens.
 const SELECT_FIELD_LABEL = {
   state:                 "State",
-  citizenshipStatus:     "Citizenship Status",
+  citizenshipStatus:     ["Citizenship Status", "Citizenship / Residential Status"],
   employmentStatus:      "Employment Status",
   incomeInterval:        "Income Interval",
   relationshipToPrimary: "Relationship to Primary Applicant",
@@ -160,15 +161,11 @@ const SELECT_VALUE_TO_LABEL = {
 };
 
 // --- Profile key -> RHF input name map ---
-// For cases where the profile key differs from the DOM input name attribute.
 const FIELD_NAME_MAP = {
-  street1:         "street1",
-  street2:         "street2",
-  cellPhoneNumber: "cellPhoneNumber",
-  birthDate: "dob",
-  yearlyIncome: "grossIncome",
+  birthDate:           "dob",
+  ssn:                 "socialSecurityNumber",
+  yearlyIncome:        "grossIncome",
   monthlyHousePayment: "monthlyHousingPayment",
-  ssn: "socialSecurityNumber",
 };
 
 // --- Filler engine ---
@@ -215,23 +212,26 @@ function fillCurrencyField(name, value) {
 }
 
 async function fillSelectField(name, value) {
-  const fieldLabel = SELECT_FIELD_LABEL[name];
-  if (!fieldLabel) {
+  const labelConfig = SELECT_FIELD_LABEL[name];
+  if (!labelConfig) {
     console.warn("[OctaneFiller] No label mapping for select field: " + name);
     return false;
   }
 
+  const labels = Array.isArray(labelConfig) ? labelConfig : [labelConfig];
+
   let wrapper = null;
   for (const el of document.querySelectorAll('[data-oid="select-wrapper"]')) {
     const labelEl = el.querySelector("label");
-    if (labelEl && labelEl.textContent.trim().toLowerCase() === fieldLabel.toLowerCase()) {
+    const labelText = labelEl && labelEl.textContent.trim().toLowerCase();
+    if (labels.some((l) => l.toLowerCase() === labelText)) {
       wrapper = el;
       break;
     }
   }
 
   if (!wrapper) {
-    console.warn("[OctaneFiller] No select wrapper found with label: " + fieldLabel);
+    console.warn("[OctaneFiller] No select wrapper found for field: " + name + " (tried: " + labels.join(", ") + ")");
     return false;
   }
 
@@ -290,7 +290,8 @@ const FIELD_TYPES = {
   employerName: "text", jobTitle: "text",
   // masked
   dob: "masked", residentialDate: "masked", employerDate: "masked",
-  phoneNumber: "masked", cellPhoneNumber: "masked", employerPhone: "masked", socialSecurityNumber: "masked",
+  phoneNumber: "masked", cellPhoneNumber: "masked",
+  employerPhone: "masked", socialSecurityNumber: "masked",
   // currency
   grossIncome: "currency", monthlyHousingPayment: "currency",
   // select
