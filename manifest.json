@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
+  "minimum_chrome_version": "106",
   "name": "Prequal Form Filler",
   "version": "0.0.1",
   "description": "Fill Octane Prequal forms with test profiles",
-  "permissions": ["activeTab", "scripting", "storage"],
+  "permissions": ["activeTab", "scripting", "storage", "webNavigation"],
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
@@ -15,6 +16,7 @@
     {
       "matches": ["http://localhost:*/*", "https://*.qa-eks.octane.co/*", "https://*.sandbox-eks.octane.co/*"],
       "js": ["src/content.js"],
+      "all_frames": true,
       "run_at": "document_idle"
     }
   ]
