@@ -4,6 +4,8 @@ Dev tool for filling Octane apply forms with test profiles. No app changes requi
 
 ## Install
 
+Requires Chrome 106 or later for document-targeted messaging.
+
 1. Open Chrome → `chrome://extensions`
 2. Enable **Developer mode** (top right toggle)
 3. Click **Load unpacked**
@@ -19,6 +21,37 @@ Dev tool for filling Octane apply forms with test profiles. No app changes requi
 
 Only fields present in the current DOM are filled — safe to run on any route.
 For multi-screen flows, navigate to the next screen and click Fill again.
+
+### Embedded widgets
+
+Open the dealer site's Octane CTA and wait for the form to load before clicking
+the extension's **Fill visible fields** button. The extension supports iframe
+forms on the same localhost, QA, and sandbox origins as standalone forms,
+including iframes created after the dealer page loads. Production forms and
+unrelated dealer forms are not supported.
+
+The `webNavigation` permission lets the popup discover frame document IDs in the
+active tab. It probes those documents for the extension's content script and
+sends profile data only to the single document reporting a visible form. It does
+not inject scripts into dealer pages or request all-sites host access. If more
+than one form is detected, close the extra forms before filling.
+
+After updating the extension, reload it in `chrome://extensions` and refresh
+already-open pages so the new content script is installed in widget frames.
+
+### Verification
+
+Run the dependency-free regression tests with `node --test tests/*.test.cjs`.
+These tests mock Chrome APIs and DOM controls; they do not replace browser testing.
+
+Browser checklist (do not submit an application):
+
+- Open the sandbox [dealer example](https://www.mallofgeorgiaindianmotorcycle.com/Motorcycles-CFMOTO-Papio-CL-2024-Buford-GA-ac091eab-5962-4eeb-868c-b4bf017d2c8a?olenv=sandbox), click the Octane CTA, and fill the loaded form.
+- Confirm text, masked, select, and tab fields update correctly inside the iframe.
+- Navigate to another form screen and fill again; close and reopen the widget and repeat.
+- Confirm an unopened/loading widget reports no form instead of zero-field success.
+- Confirm existing standalone localhost, QA, and sandbox forms still fill.
+- Confirm production widgets and unrelated dealer forms are not filled.
 
 For joint profiles (George + Tanya), a **Primary / Co-applicant** toggle appears
 so you can fill the co-applicant screen separately.
