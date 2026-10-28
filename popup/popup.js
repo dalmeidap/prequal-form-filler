@@ -70,24 +70,50 @@ fillBtn.addEventListener("click", async () => {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
+    const frames = await chrome.webNavigation.getAllFrames({ tabId: tab.id });
+    const candidates = await Promise.all((frames || []).map(async (frame) => {
+      try {
+        const state = await chrome.tabs.sendMessage(tab.id, { type: "GET_FORM_STATE" }, {
+          documentId: frame.documentId,
+        });
+        return state?.hasForm ? frame : null;
+      } catch {
+        // Unrelated frames have no filler; frames can also navigate during discovery.
+        return null;
+      }
+    }));
+    const formFrames = candidates.filter(Boolean);
+    if (formFrames.length !== 1) {
+      showStatus(formFrames.length
+        ? "Multiple Octane forms are open. Close the extra forms and try again."
+        : "No Octane form found. Open the widget, wait for it to load, and try again. Standalone forms must use localhost, QA, or sandbox.", "error");
+      return;
+    }
+
     const response = await chrome.tabs.sendMessage(tab.id, {
       type: "FILL_FORM",
       profileKey,
       emailOverride: emailOverride || null,
       section,
-    });
+    }, { documentId: formFrames[0].documentId });
 
     if (response?.error) {
       showStatus(`Error: ${response.error}`, "error");
     } else if (response?.results) {
       const { filled, skipped, failed } = response.results;
+      if (!filled.length && !failed.length) {
+        showStatus("No matching fields on this screen. Navigate to a form screen and try again.", "error");
+        return;
+      }
       const parts = [`✓ ${filled.length} filled`];
       if (skipped.length) parts.push(`${skipped.length} not on screen`);
       if (failed.length)  parts.push(`⚠ ${failed.length} failed`);
       showStatus(parts.join(" · "), failed.length ? "error" : "success");
+    } else {
+      showStatus("The form did not respond. Wait for it to load and try again.", "error");
     }
   } catch (err) {
-    showStatus(`Could not reach page. Is this an Octane app tab?`, "error");
+    showStatus("Could not reach the form. Reopen the widget or refresh the page and try again.", "error");
     console.error(err);
   } finally {
     fillBtn.classList.remove("loading");

@@ -348,8 +348,26 @@ async function fillForm(profileData, emailOverride) {
 
 // --- Message listeners ---
 
+function hasVisibleForm() {
+  const controls = document.querySelectorAll('input[name], [data-oid="select-wrapper"], [role="tab"]');
+  return Array.from(controls).some((el) => {
+    const supported = FIELD_TYPES[el.name] || el.matches('[data-oid="select-wrapper"], [role="tab"]');
+    return supported && el.getClientRects().length > 0 &&
+      getComputedStyle(el).visibility === "visible";
+  });
+}
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message.type === "GET_FORM_STATE") {
+    sendResponse({ hasForm: hasVisibleForm() });
+    return;
+  }
   if (message.type !== "FILL_FORM") return;
+
+  if (!hasVisibleForm()) {
+    sendResponse({ error: "No supported fields are visible. Open the form and try again." });
+    return;
+  }
 
   const { profileKey, emailOverride, section } = message;
   const profile = PROFILES[profileKey];
